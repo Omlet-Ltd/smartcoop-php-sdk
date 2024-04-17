@@ -1,0 +1,150 @@
+[
+  {
+    "deviceId": "FVhHis7DRqa2",
+    "deviceTypeId": 1,
+    "groupId": "Gj7dghs76aMEogo",
+    "name": "New autodoor",
+    "deletePending": 0,
+    "lastConnected": "2024-04-21T12:35:34+00:00",
+    "nextConnection": null,
+    "overdueConnection": 0,
+    "state": {
+      "general": {
+        "firmwareVersionCurrent": "1.0.20-a61515d5",
+        "firmwareLastCheck": "2024-04-21T05:09:17+00:00",
+        "batteryLevel": 98,
+        "powerSource": "external",
+        "displayLine1": "Close @ 6       ",
+        "displayLine2": "Door Fault      ",
+        "firmwareVersionPrevious": "1.0.19-2c04a963",
+        "uptime": 116037
+      },
+      "connectivity": {
+        "wifiStrength": -52,
+        "bluetoothStrength": "notPresent",
+        "ssid": "BT-WSAFCT",
+        "wifiPowerLevel": 20,
+        "connected": true
+      },
+      "door": {
+        "state": "open",
+        "lastOpenTime": "2024-04-21T10:55:13+00:00",
+        "lastCloseTime": "2024-04-20T05:30:30+00:00",
+        "fault": "general",
+        "lightLevel": 20
+      },
+      "light": {
+        "state": "off"
+      }
+    },
+    "configuration": {
+      "door": {
+        "openMode": "light",
+        "openDelay": 0,
+        "openTime": "06:30",
+        "closeMode": "light",
+        "closeDelay": 0,
+        "closeLightLevel": 6,
+        "closeTime": "19:00",
+        "openLightLevel": 27,
+        "doorType": "sliding",
+        "colour": "green"
+      },
+      "connectivity": {
+        "bluetoothState": "on",
+        "wifiState": "on"
+      },
+      "general": {
+        "datetime": "2024-04-21T13:35:07+00:00",
+        "timezone": "Europe/London",
+        "updateFrequency": 86400,
+        "language": "en",
+        "stayAliveTime": 0,
+        "statusUpdatePeriod": 21600,
+        "pollFreq": 600,
+        "overnightSleepEnable": true,
+        "overnightSleepStart": "21:00",
+        "overnightSleepEnd": "05:00"
+      },
+      "light": {
+        "mode": "auto",
+        "minutesBeforeClose": 5,
+        "maxOnTime": 5,
+        "equipped": 2
+      }
+    },
+    "deviceType": "Autodoor",
+    "actions": [
+      {
+        "actionName": "close",
+        "description": "Close Door",
+        "actionValue": "close",
+        "pendingValue": "closepending",
+        "url": "/device/FVhHXPsy4R1PRqa2/action/close"
+      },
+      {
+        "actionName": "detect",
+        "description": "Detect Coop Light",
+        "actionValue": "test",
+        "pendingValue": null,
+        "url": "/device/FVhHXPsy4R1PRqa2/action/detect"
+      },
+      {
+        "actionName": "factory_reset",
+        "description": "Factory Reset",
+        "actionValue": "factoryReset",
+        "pendingValue": null,
+        "url": "/device/FVhHXPsy4R1PRqa2/action/factory_reset"
+      },
+      {
+        "actionName": "firmware_update",
+        "description": "Check for Firmware Update",
+        "actionValue": "ota",
+        "pendingValue": null,
+        "url": "/device/FVhHXPsy4R1PRqa2/action/firmware_update"
+      },
+      {
+        "actionName": "off",
+        "description": "Light Off",
+        "actionValue": "off",
+        "pendingValue": "offpending",
+        "url": "/device/FVhHXPsy4R1PRqa2/action/off"
+      },
+      {
+        "actionName": "on",
+        "description": "Light On",
+        "actionValue": "on",
+        "pendingValue": "onpending",
+        "url": "/device/FVhHXPsy4R1PRqa2/action/on"
+      },
+      {
+        "actionName": "open",
+        "description": "Open Door",
+        "actionValue": "open",
+        "pendingValue": "openpending",
+        "url": "/device/FVhHXPsy4R1PRqa2/action/open"
+      },
+      {
+        "actionName": "restart",
+        "description": "Restart",
+        "actionValue": "restart",
+        "pendingValue": null,
+        "url": "/device/FVhHXPsy4R1PRqa2/action/restart"
+      },
+      {
+        "actionName": "setup_wifi",
+        "description": "Reset Wifi Credentials",
+        "actionValue": "setupWiFi",
+        "pendingValue": null,
+        "url": "/device/FVhHXPsy4R1PRqa2/action/setup_wifi"
+      },
+      {
+        "actionName": "stop",
+        "description": "Stop Door",
+        "actionValue": "stop",
+        "pendingValue": "stopping",
+        "url": "/device/FVhHXPsy4R1PRqa2/action/stop"
+      }
+    ]
+  }
+]

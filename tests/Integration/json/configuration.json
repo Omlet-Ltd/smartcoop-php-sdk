@@ -1,0 +1,36 @@
+{
+  "door": {
+    "openMode": "light",
+    "openDelay": 0,
+    "openTime": "06:30",
+    "closeMode": "light",
+    "closeDelay": 0,
+    "closeLightLevel": 6,
+    "closeTime": "19:00",
+    "openLightLevel": 27,
+    "doorType": "sliding",
+    "colour": "green"
+  },
+  "connectivity": {
+    "bluetoothState": "on",
+    "wifiState": "on"
+  },
+  "general": {
+    "datetime": "2024-04-21T13:35:07+00:00",
+    "timezone": "Europe/London",
+    "updateFrequency": 86400,
+    "language": "en",
+    "stayAliveTime": 0,
+    "statusUpdatePeriod": 21600,
+    "pollFreq": 600,
+    "overnightSleepEnable": true,
+    "overnightSleepStart": "21:00",
+    "overnightSleepEnd": "05:00"
+  },
+  "light": {
+    "mode": "auto",
+    "minutesBeforeClose": 5,
+    "maxOnTime": 5,
+    "equipped": 2
+  }
+}

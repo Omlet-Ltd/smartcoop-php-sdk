@@ -1,0 +1,1346 @@
+openapi: 3.0.0
+info:
+  version: 1.0.1
+  title: Omlet Smart Coop API
+  description: ''
+tags:
+  - name: User
+  - name: Device
+  - name: Group
+paths:
+  /whoami:
+    get:
+      description: Returns identity of authenticated user
+      tags:
+        - User
+      security:
+        - ApiKey: []
+      responses:
+        '200':
+          description: An object containing the name of the authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          $ref: "#/components/responses/401"
+  /login:
+    post:
+      description: Authenticates a user and returns an API key
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emailAddress:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  apiKey:
+                    type: string
+                    description: ApiKey to use for future requests
+        401:
+          description: Login failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login failed
+  /logout:
+    post:
+      description: Expire the API key used for the request so the key can no longer be used
+      tags:
+        - User
+      security:
+        - ApiKey: []
+      responses:
+        204:
+          description: Logout successful
+        401:
+          $ref: "#/components/responses/401"
+  /register:
+    post:
+      description: Registers a new user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emailAddress:
+                  type: string
+                password:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+      responses:
+        204:
+          description: Registration completed
+        409:
+          description: Already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User already exists
+  /resetpassword:
+    post:
+      description: Sends a password reset email
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emailAddress:
+                  type: string
+      responses:
+        204:
+          description: Password reset email sent
+  /token/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        description: The notification token to be registered
+        schema:
+          type: string
+    post:
+      description: Register a push notification token
+      tags:
+        - App
+      security:
+        - ApiKey: []
+      responses:
+        204:
+          description: Token registered
+        401:
+          $ref: "#/components/responses/401"
+    delete:
+      description: Unregister a push notification token
+      tags:
+        - App
+      security:
+        - ApiKey: []
+      responses:
+        204:
+          description: Token unregistered
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+  /notifications:
+    patch:
+      description: Update the list of notifications the user is subscribed to and set an allowed period of time
+      tags:
+        - App
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notification_period:
+                  type: object
+                  description: Start and end time for notifications. If null is provided for the start or end value, the notification period will be unset.
+                  properties:
+                    start:
+                      type: string
+                      description: The time in 24-hour format to start sending notifications again
+                      example: "07:00"
+                    end:
+                      type: string
+                      description: The time in 24-hour format to stop sending notifications
+                      example: "21:00"
+                notifications:
+                  type: object
+                  required: true
+                  description: The notification key as the key and a boolean value for enabled or disabled
+                  properties:
+                    door:
+                      type: boolean
+                      description: Enable or disable door notifications
+                      example: true
+                    light:
+                      type: boolean
+                      description: Enable or disable light notifications
+                      example: false
+                    fault:
+                      type: boolean
+                      description: Enable or disable fault notifications
+                      example: true
+                    battery:
+                      type: boolean
+                      description: Enable or disable battery notifications
+                      example: true
+                    powerSource:
+                      type: boolean
+                      description: Enable or disable power source notifications
+                      example: true
+                    connection:
+                      type: boolean
+                      description: Enable or disable connection notifications
+                      example: false
+      responses:
+        204:
+          description: Notification subscriptions updated
+        401:
+          $ref: "#/components/responses/401"
+  /keepalive:
+    post:
+      description: Notify devices to stay alive
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                duration:
+                  type: integer
+                  description: Number of seconds devices should stay connected for
+                  example: 300
+      responses:
+        204:
+          description: Keep alive command received
+        401:
+          $ref: "#/components/responses/401"
+  /firmware/latest:
+    get:
+      description: Return a list of latest firmwares by device type
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: A list of latest firmware versions by device type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Autodoor:
+                    type: string
+                    description: The latest firmware version for Autodoor devices
+                    example: "0.2.1"
+                  Light:
+                    type: string
+                    description: The latest firmware version for Light devices
+                    example: "0.2.0"
+                  Fan:
+                    type: string
+                    description: The latest firmware version for Fan devices
+                    example: "0.2.0"
+                  Heater:
+                    type: string
+                    description: The latest firmware version for Heater devices
+                    example: "0.2.0"
+        401:
+          $ref: "#/components/responses/401"
+  /provision:
+    post:
+      description: Generate a device API key to provision a new device
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groupId:
+                  type: string
+                  description: The ID of the group to add the new device to
+                  example: Ujsh72jVSrw3FreL
+      responses:
+        200:
+          description: API key to send to device
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  apiKey:
+                    type: string
+                    description: API key for device
+                  deviceId:
+                    type: string
+                    description: Device ID for newly provisioned device
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        404:
+          $ref: "#/components/responses/404"
+  /provision/device:
+    post:
+      description: Complete provisioning for a device
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceSerial:
+                  type: string
+      responses:
+        204:
+          description: Device provisioning successful
+        401:
+          $ref: "#/components/responses/401"
+
+  /group:
+    get:
+      description: Returns a list of groups accessible by the authenticated user
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: A list of groups accessible by the authenticated user
+          content:
+           application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Group'
+        401:
+          $ref: '#/components/responses/401'
+    post:
+      description: Creates a new group
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groupName:
+                  type: string
+                  description: The name to assign to the new group
+      responses:
+        200:
+          description: The newly created group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        401:
+          $ref: '#/components/responses/401'
+  /group/{groupId}:
+    parameters:
+      - name: groupId
+        in: path
+        required: true
+        description: The ID of the group to be updated
+        schema:
+          type: string
+    get:
+      description: Returns a list of groups accessible by the authenticated user
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: The specific group as requested by ID
+          content:
+           application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    patch:
+      description: Updates the specified group
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        description: The new details to apply to the group
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groupName:
+                  type: string
+                  description: The new name to assign to the group
+      responses:
+        204:
+          description: Group details have been updated
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+    delete:
+      description: Deletes a group (only if empty)
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      responses:
+        204:
+          description: Group details have been updated
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+  /group/{groupId}/user:
+    parameters:
+      - name: groupId
+        in: path
+        required: true
+        description: The ID of the group to be updated
+        schema:
+          type: string
+    post:
+      description: Invites a user to access a group - or updates their access level
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emailAddress:
+                  type: string
+                  description: The email address of the user to invite
+                access:
+                  type: string
+                  enum: ["Admin", "User"]
+                  description: The access level to assign to the user
+      responses:
+        204:
+          description: Invite has been sent to user
+        401:
+          $ref: '#/components/responses/401'
+        409:
+          $ref: '#/components/responses/409'
+    delete:
+      description: Removes a user's access to a group
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      parameters:
+        - name: emailAddress
+          in: query
+          schema:
+            type: string
+          required: true
+          description: The email address of the user to remove
+      responses:
+        204:
+          description: User has been removed
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    patch:
+      description: Updates a user's access level to a group
+      tags:
+        - Group
+      security:
+        - ApiKey: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emailAddress:
+                  type: string
+                  description: The email address of the user to invite
+                access:
+                  type: string
+                  enum: [ "Admin", "User" ]
+                  description: The access level to assign to the user
+      responses:
+        204:
+          description: User's access level has been updated
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+  /invite/{groupId}:
+    parameters:
+      - name: groupId
+        in: path
+        required: true
+        description: The ID of the group to accept the invite to
+        schema:
+          type: string
+    post:
+      description: Accepts an invite to a group
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      responses:
+        204:
+          description: Invite has been sent to user
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    delete:
+      description: Declines an invite to a group
+      tags:
+        - Group
+      security:
+        - ApiKey: []
+      responses:
+        204:
+          description: User has been removed
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+
+  /device:
+    get:
+      description: Returns a list of devices accessible by the authenticated user
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: A list of devices accessible by the authenticated user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+        401:
+          $ref: "#/components/responses/401"
+  /device/{deviceId}:
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: The ID of the device to request details for
+        schema:
+          type: string
+    get:
+      description: Returns the details of the specified device
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: The details of the specified device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        401:
+          $ref: "#/components/responses/401"
+    patch:
+      description: Updates details for a specific device
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        description: The new details to apply to the device
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The new name to assign to the device
+                groupId:
+                  type: string
+                  description: The ID of the group to move the device to
+      responses:
+        200:
+          description: The updated device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        404:
+          $ref: "#/components/responses/404"
+  /device/{deviceId}/action/{action}:
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: The ID of the device to request state for
+        schema:
+          type: string
+      - name: action
+        in: path
+        required: true
+        description: The action to perform on the device
+        schema:
+          type: string
+    post:
+      description: Perform the specified action
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: ActionType has been queued to be sent to the device - additional contextual information returned
+          content:
+            application/json:
+              schema:
+                type: object
+        204:
+          description: ActionType has been queued to be sent to the device
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+  /device/{deviceId}/configuration:
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: The ID of the device to request configuration for
+        schema:
+          type: string
+    get:
+      description: Returns configuration data for the specified device
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: Configuration for the specified device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        401:
+          $ref: "#/components/responses/401"
+    patch:
+      description: Apply new configuration to the specified device
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        description: The new configuration to apply to the device
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Configuration'
+      responses:
+        204:
+          description: Configuration has been queued to be sent to the device
+        401:
+          $ref: "#/components/responses/401"
+  /events:
+    get:
+      description: Returns a list of recent events
+      tags:
+        - Device
+      security:
+        - ApiKey: []
+      responses:
+        200:
+          description: List of events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        401:
+          $ref: "#/components/responses/401"
+  /bugreport:
+    post:
+      description: File a bug report with the x107 app
+      tags:
+        - App
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        description: The details of the bug report
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  description: The description of the bug that was encountered
+                metadata:
+                  type: object
+                  description: Metadata including the app version and device details
+      responses:
+        204:
+          description: Bug report has been saved
+        401:
+          $ref: "#/components/responses/401"
+  /account:
+    patch:
+      description: Update the details of the authenticated user
+      tags:
+        - User
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        description: The new details to apply to the user
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                emailAddress:
+                  type: string
+      responses:
+        204:
+          description: User details have been updated
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        400:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                    description: Message describing the error in the request data
+                  errors:
+                    type: object
+                    description: A list of errors in the request data
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/OmletLtd/X107/1.0.1
+  - description: Development environment
+    url: https://x107.omlet.co.uk/api/v1
+components:
+  securitySchemes:
+    ApiKey:
+      type: http
+      scheme: bearer
+  responses:
+    400:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                description: Message describing the error in the request data
+    401:
+      description: Authorization information is missing or invalid.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: Authorization information is missing or invalid. Check the API key and retry
+    403:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                description: Message describing the reason the action was denied
+    404:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                description: Message describing the object which was not found
+    409:
+      description: Already exists
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: User already exists
+
+  schemas:
+    Action:
+      type: object
+      required:
+        - name
+        - url
+      properties:
+        actionName:
+          type: string
+          example: Open
+        description:
+          type: string
+          example: Open door
+        url:
+          type: string
+          example: /device/NsAKflxaCkDLkiO9/open
+    Configuration:
+      type: object
+      description: Contains the configuration for a device
+      properties:
+        general:
+          $ref: '#/components/schemas/ConfigurationGeneral'
+        connectivity:
+          $ref: '#/components/schemas/ConfigurationConnectivity'
+        door:
+          $ref: '#/components/schemas/ConfigurationDoor'
+        light:
+          $ref: '#/components/schemas/ConfigurationLight'
+        # heater:
+        #   $ref: '#/components/schemas/ConfigurationHeater'
+        # fan:
+        #   $ref: '#/components/schemas/ConfigurationFan'
+    ConfigurationGeneral:
+      type: object
+      description: Contains general configuration data for a device
+      properties:
+        datetime:
+          type: string
+          example: 'Thu Sep  7 09:44:47 2023'
+          description: The current date & time
+        timezone:
+          type: string
+          example: '0'
+          description: The selected timezone offset from GMT
+        useDst:
+          type: boolean
+          example: 1
+          description: Enable the device to automatically adjust when the clocks change
+        updateFrequency:
+          type: integer
+          example: 86400
+          description: Interval (in seconds) between checks for new firmware
+        language:
+          type: string
+          example: en
+          description: Language used for the control panel display (Autodoor only)
+        overnightSleepEnable:
+          type: boolean
+          example: true
+          description: Enable the device to enter a long sleep overnight to preserve battery
+        overnightSleepStart:
+          type: string
+          example: '23:00'
+          description: The time at which the device will enter the long sleep
+        overnightSleepEnd:
+          type: string
+          example: '05:00'
+          description: The time at which the device will wake from the long sleep
+        pollFreq:
+          type: integer
+          example: 30
+          description: Sleep duration before waking to check in with server
+        stayAliveTime:
+          type: integer
+          example: 5
+          description: Time device should stay awake after last activity or communication before entering sleep mode (seconds)
+        statusUpdatePeriod:
+          type: integer
+          example: 21600
+          description: Time between full syncronisations of status and configuration with the server
+    ConfigurationConnectivity:
+      type: object
+      description: Contains connectivity configuration for a device
+      properties:
+        bluetoothState:
+          type: string
+          enum: [on, off]
+          example: on
+          description: Is bluetooth enabled for local control
+        wifiState:
+          type: string
+          enum: [on, off]
+          example: on
+          description: Is wifi enabled for api control
+    ConfigurationDoor:
+      type: object
+      description: Contains the door configuration for a device
+      properties:
+        doorType:
+          type: string
+          enum: [sliding, rotary]
+          example: sliding
+          description: The type of door connected to the control panel
+        openMode:
+          type: string
+          enum: [light, time, manual]
+          example: light
+          description: Determines if the door opens based on light level, or time, or only manually
+        openDelay:
+          type: integer
+          example: 10
+          description: Light mode only - minutes to wait once desired light level is reached before the door opens
+        openLightLevel:
+          type: integer
+          example: 15
+          description: Light mode only - required light level to trigger door to open
+        openTime:
+          type: string
+          example: '08:00'
+          description: Time mode - desired opening time. Light mode - door will open at this time, even if the desired light level is not reached
+        closeMode:
+          type: string
+          enum: [light, time, manual]
+          example: light
+          description: Determines if the door closes based on light level, or time, or only manually
+        closeDelay:
+          type: integer
+          example: 10
+          description: Light mode only - minutes to wait once desired light level is reached before the door closes
+        closeLightLevel:
+          type: integer
+          example: 8
+          description: Light mode only - required light level to trigger door to close
+        closeTime:
+          type: string
+          example: '20:30'
+          description: Time mode - desired closing time. Light mode - door will close at this time, even if the desired light level is not reached
+        colour:
+          type: string
+          enum: [green, grey]
+          example: green
+          description: The colour of the door - note this parameter only affects display within the app
+    ConfigurationLight:
+      type: object
+      description: Contains the light configuration for a device
+      properties:
+        mode:
+          type: string
+          enum: [auto, manual]
+          example: auto
+          description: Operation mode for the light
+        minutesBeforeClose:
+          type: integer
+          example: 5
+          description: Auto mode only - Number of minutes before the door closes the light should switch on
+        maxOnTime:
+          type: integer
+          example: 30
+          description: Maximum number of minutes the light should be on for - prevents light accidentally being left on when turned on manually
+    # ConfigurationFan:
+    #   type: object
+    #   description: Contains the fan configuration for a device
+    #   properties:
+    #     mode:
+    #       type: string
+    #       enum: [auto, manual]
+    #       example: auto
+    #       description: Operation mode for the fan
+    #     onTemp:
+    #       type: integer
+    #       example: 25
+    #       description: Auto mode only - Fan will switch on when this temperature is exceeded
+    #     offTemp:
+    #       type: integer
+    #       example: 21
+    #       description: Auto mode only - Fan will switch off when temperature drops below this level
+    # ConfigurationHeater:
+    #   type: object
+    #   description: Contains the heater configuration for a device
+    #   properties:
+    #     mode:
+    #       type: string
+    #       enum: [auto, manual]
+    #       example: auto
+    #       description: Operation mode for the heater
+    #     onTemp:
+    #       type: integer
+    #       example: 5
+    #       description: Auto mode only - Heater will switch on when temperature drops below this level
+    #     offTemp:
+    #       type: integer
+    #       example: 10
+    #       description: Heater will switch off when this temperature is exceeded
+    Device:
+      type: object
+      required:
+        - deviceId
+      properties:
+        deviceId:
+          type: string
+          example: NsAKflxaCkDLkiO9
+        name:
+          type: string
+          description: Friendly name for this device
+          example: My Autodoor
+        deviceType:
+          type: string
+          description: Identifies the type of the device
+          example: autodoor
+        state:
+          $ref: '#/components/schemas/State'
+        configuration:
+          $ref: '#/components/schemas/Configuration'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+    Event:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: NsAKflxaCkDLkiO9
+        parameterSetName:
+          type: string
+          example: door
+        parameterName:
+          type: string
+          example: state
+        oldValue:
+          oneOf:
+            - type: string
+            - type: boolean
+            - type: integer
+          example: open
+        newValue:
+          oneOf:
+            - type: string
+            - type: boolean
+            - type: integer
+          example: closed
+        created_at:
+          type: string
+          example: "2023-11-08T09:30:10+00:00"
+    Group:
+      type: object
+      required:
+        - groupId
+      properties:
+        groupId:
+          type: string
+          example: Uhe92kLJb10Dbfj3
+        groupName:
+          type: string
+          description: Friendly name for this group
+          example: Green Coop
+        access:
+          type: string
+          description: The access level the user has to this group
+          enum: [Admin, User]
+          example: Admin
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+        admins:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupUser'
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupUser'
+    GroupSubset:
+      type: object
+      required:
+        - groupId
+      properties:
+        groupId:
+          type: string
+          example: Uhe92kLJb10Dbfj3
+        groupName:
+          type: string
+          description: Friendly name for this group
+          example: Green Coop
+        access:
+          type: string
+          description: The access level the user has to this group
+          enum: [Admin, User]
+          example: Admin
+    GroupUser:
+      type: object
+      properties:
+        emailAddress:
+          type: string
+          example: user@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        access:
+          type: string
+          example: Admin
+          enum: [Admin, User]
+    State:
+      type: object
+      description: Contains the current status of a device
+      properties:
+        general:
+          $ref: '#/components/schemas/StateGeneral'
+        connectivity:
+          $ref: '#/components/schemas/StateConnectivity'
+        door:
+          $ref: '#/components/schemas/StateDoor'
+        light:
+          $ref: '#/components/schemas/StateLight'
+#        heater:
+#          $ref: '#/components/schemas/StateHeater'
+#        fan:
+#          $ref: '#/components/schemas/StateFan'
+    StateGeneral:
+      type: object
+      description: Contains the general status of a device
+      properties:
+        firmwareVersionCurrent:
+          type: string
+          example: '1.0.1'
+          description: The current firmware version installed on the device
+        firmwareVersionPrevious:
+          type: string
+          example: '1.0.0'
+          description: The previous firmware version installed on the device
+        firmwareLastCheck:
+          type: string
+          example: '2023-06-22 23:00'
+          description: The date/time the device last checked for a firmware update
+        batteryLevel:
+          type: integer
+          example: 83
+          description: The current battery level
+        powerSource:
+          type: string
+          enum: [internal, external]
+          example: internal
+          description: The current power source being used by the device
+        uptime:
+          type: integer
+          example: 60
+          description: The number of seconds the device has been running for
+        displayLine1:
+          type: string
+          example: Hold OK to close
+          description: The first line of text currently displayed on the screen
+        displayLine2:
+          type: string
+          example: 'Battery: 80%'
+          description: The second line of text currently displayed on the screen
+    StateConnectivity:
+      type: object
+      description: Contains the connectivity status of a device
+      properties:
+        ssid:
+          type: string
+          example: MyWiFi
+          description: The SSID of the wifi network the device is connected to
+        wifiStrength:
+          type: string
+          example: "-60"
+          description: The current wifi signal strength (0 if not connected) - measured in dBm
+        wifiPowerLevel:
+          type: string
+          example: "20"
+          description: The transmit power level of the device
+        bluetoothStrength:
+          type: string
+          example: "0"
+          description: The current bluetooth signal strength (notPresent if not connected)
+    StateDoor:
+      type: object
+      description: Contains the door status of a device
+      properties:
+        state:
+          type: string
+          enum: [unknown, open, closed, opening, closing, calibrating]
+          example: open
+          description: The current state of the door
+        lastOpenTime:
+          type: string
+          example: '2023-06-23 06:32'
+          description: The date/time the door last opened
+        lastCloseTime:
+          type: string
+          example: '2023-06-22 20:05'
+          description: The date/time the door last closed
+        fault:
+          type: string
+          enum: [none, blocked, crush, wiring]
+          description: Details of the fault that occurred the last time the door attempted to close
+        lightLevel:
+          type: integer
+          example: 66
+          description: The current light level
+    StateLight:
+      type: object
+      description: Contains the light status of a device
+      properties:
+        state:
+          type: string
+          enum: [on, off]
+          example: off
+          description: The current state of the light
+#    StateFan:
+#      type: object
+#      description: Contains the fan status of a device
+#      properties:
+#        state:
+#          type: string
+#          enum: [on, off]
+#          example: off
+#          description: The current state of the fan
+#        temperature:
+#          type: integer
+#          example: 18
+#          description: The current temperature measured by the fan
+#    StateHeater:
+#      type: object
+#      description: Contains the heater status of a device
+#      properties:
+#        state:
+#          type: string
+#          enum: [on, off]
+#          example: off
+#          description: The current state of the heater
+#        temperature:
+#          type: integer
+#          example: 18
+#          description: The current temperature measured by the heater
+    User:
+      type: object
+      required:
+        - userId
+        - firstName
+        - lastName
+      properties:
+        emailAddress:
+          type: string
+          example: testuser@omlet.co.uk
+        firstName:
+          type: string
+          example: Barbara
+        lastName:
+          type: string
+          example: Hutch
+        siteLink:
+          type: string
+          example: www.omlet.co.uk
+        notificationSettings:
+          type: object
+          additionalProperties:
+            type: boolean
+        notificationPeriod:
+          type: object
+          description: The period of time during which notifications are allowed. If null, then no times are set.
+          properties:
+            start:
+              type: string
+              description: The start time for notifications
+              example: "07:00"
+            end:
+              type: string
+              description: The end time for notifications
+              example: "21:00"
+        invites:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupSubset'
